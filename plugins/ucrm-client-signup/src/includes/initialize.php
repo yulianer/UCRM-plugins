@@ -17,3 +17,4 @@ if (! isset($_SESSION['csrf_token'])) {
 $dataUrl = PROJECT_PATH . '/data/';
 \Ucsp\Interpreter::setDataUrl($dataUrl);
 \Ucsp\Interpreter::setFrontendKey($key);
+\Ucsp\Interpreter::setExpectedIsLead(array_key_exists('LEAD', $config) ? (bool) $config['LEAD'] : null);

@@ -39,6 +39,8 @@ class Interpreter
 
     private static $dataUrl = null;
 
+    private static $expectedIsLead = null;
+
     private $response;
 
     private $code;
@@ -55,6 +57,11 @@ class Interpreter
     public static function setDataUrl($dataUrl)
     {
         self::$dataUrl = $dataUrl;
+    }
+
+    public static function setExpectedIsLead(?bool $isLead): void
+    {
+        self::$expectedIsLead = $isLead;
     }
 
     public static function setFrontendKey($key): bool
@@ -183,7 +190,21 @@ class Interpreter
             return false;
         }
 
-        return self::validateFields($data, self::$whitelist[$method][$endpoint]);
+        if (! self::validateFields($data, self::$whitelist[$method][$endpoint])) {
+            return false;
+        }
+
+        if ($method === 'POST' && $endpoint === 'clients') {
+            if (
+                self::$expectedIsLead === null
+                || ! array_key_exists('isLead', $data)
+                || ((bool) $data['isLead']) !== self::$expectedIsLead
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function validateFields(array $data, array $schema): bool
