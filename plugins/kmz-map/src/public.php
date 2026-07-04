@@ -5,6 +5,19 @@ define('PROJECT_PATH', __DIR__);
 
 require_once(PROJECT_PATH . '/includes/initialize.php');
 
+function sanitizeHttpUrl(?string $url): string
+{
+    $url = filter_var($url, FILTER_VALIDATE_URL, [
+        'flags' => FILTER_NULL_ON_FAILURE,
+    ]);
+
+    if ($url === null || ! in_array(strtolower((string) parse_url($url, PHP_URL_SCHEME)), ['http', 'https'], true)) {
+        return '';
+    }
+
+    return $url;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -31,14 +44,10 @@ require_once(PROJECT_PATH . '/includes/initialize.php');
         <?php } ?>
         <div class="buttons">
           <?php if (! empty(\KMZMap\Config::$LINK_ONE[0])) { ?>
-            <a href="<?php echo htmlspecialchars(filter_var(\KMZMap\Config::$LINK_ONE[0], FILTER_VALIDATE_URL, [
-                'flags' => FILTER_NULL_ON_FAILURE,
-            ]) ?? '', ENT_QUOTES); ?>" class="btn" style="background-color: #28a745;"><?php echo htmlspecialchars(\KMZMap\Config::$LINK_ONE[1], ENT_QUOTES); ?></a>
+            <a href="<?php echo htmlspecialchars(sanitizeHttpUrl(\KMZMap\Config::$LINK_ONE[0]), ENT_QUOTES); ?>" class="btn" style="background-color: #28a745;"><?php echo htmlspecialchars(\KMZMap\Config::$LINK_ONE[1], ENT_QUOTES); ?></a>
           <?php } ?>
           <?php if (! empty(\KMZMap\Config::$LINK_TWO[0])) { ?>
-            <a href="<?php echo htmlspecialchars(filter_var(\KMZMap\Config::$LINK_TWO[0], FILTER_VALIDATE_URL, [
-                'flags' => FILTER_NULL_ON_FAILURE,
-            ]) ?? '', ENT_QUOTES); ?>" class="btn" style="background-color: #007bff;"><?php echo htmlspecialchars(\KMZMap\Config::$LINK_TWO[1], ENT_QUOTES); ?></a>
+            <a href="<?php echo htmlspecialchars(sanitizeHttpUrl(\KMZMap\Config::$LINK_TWO[0]), ENT_QUOTES); ?>" class="btn" style="background-color: #007bff;"><?php echo htmlspecialchars(\KMZMap\Config::$LINK_TWO[1], ENT_QUOTES); ?></a>
           <?php } ?>
         </div>
       </div>
