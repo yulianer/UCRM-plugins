@@ -1,86 +1,68 @@
-# Notificador WhatsApp para UISP (CRM)
+Notificador WhatsApp Core para UISP (CRM)
+Este complemento integral conecta UISP (CRM) con la API de OpenWA Core, automatizando la comunicación con los clientes mediante notificaciones instantáneas de WhatsApp. El sistema procesa de forma inteligente los webhooks de UISP, maneja archivos PDF en Base64 y cuenta con un sistema avanzado de control de flujo (Rate-Limit) para evitar el spam.
 
-Este complemento permite integrar **UISP (CRM)** con la API de WhatsApp (**OpenWA / WAHA Core**) para automatizar el envío de facturas en formato PDF y notificaciones de servicio directamente a tus clientes.
+🚀 Características Principales
+Soporte Multievento: Cobertura total del ciclo de vida del cliente:
 
----
+Facturación: Nuevas facturas (con envío de PDF adjunto), recordatorios de pago próximo a vencer y avisos de facturas vencidas.
 
-## 🚀 Características Principales
+Pagos: Confirmación inmediata de pagos recibidos con detalle de monto y método.
 
-* **Envío Automático:** Envío de facturas en formato PDF al momento de la creación.
-* **Notificaciones de Servicio:** Soporte para eventos de interrupción (outage).
-* **Integración con API Core:** Optimizado para la arquitectura de OpenWA / WAHA.
-* **Personalización:** Fácil configuración de mensajes mediante el `public.php`.
+Servicios: Alertas de interrupciones, suspensiones, reactivaciones, posposiciones y creación de nuevos servicios.
 
----
+Clientes: Mensaje automatizado de bienvenida para nuevos registros.
 
-## 🛠 Requisitos
+Envío Nativo de Documentos: Descarga y codificación de facturas PDF al vuelo para enviarlas como documentos nativos de WhatsApp sin requerir almacenamiento temporal en disco.
 
-* **UISP (UCRM):** Con acceso a instalación de plugins.
-* **OpenWA (Core/WAHA):** Contenedor Docker configurado y accesible desde la red de UISP.
-* **PHP:** Entorno configurado dentro del servidor UISP.
+Sistema Anti-Spam (Rate-Limit): Lógica avanzada que evalúa el historial de alertas mediante un archivo local (alert_log.json) para restringir envíos duplicados en períodos de 30 minutos a 24, dependiendo de la criticidad del evento.
 
----
+Estructura OpenWA Core: Optimizado bajo los estándares de las versiones más recientes de la API (/send-document y /send-text), utilizando estructuras planas de JSON (Flat JSON).
 
-## 📦 Instalación
+🛠 Requisitos del Entorno
+Servidor UISP (UCRM): Versión compatible con instalación de plugins personalizados.
 
-1. Asegúrate de que los archivos estén en la raíz de una carpeta llamada `notificador-whatsapp`.
-2. Comprime la carpeta en un archivo `.zip`.
-3. Ingresa a tu panel de **UISP > Sistema > Plugins**.
-4. Haz clic en **Subir Plugin** y selecciona el archivo `.zip`.
-5. Activa el plugin y configúralo con los parámetros requeridos.
+OpenWA Core / WAHA: Contenedor Docker configurado, activo y con una sesión vinculada.
 
----
+PHP: Extensiones cURL y JSON habilitadas en el entorno del servidor UISP.
 
-## ⚙️ Configuración
+Permisos de escritura: El complemento requiere permisos de escritura en la carpeta data/ para gestionar el archivo alert_log.json.
 
-Dentro de la configuración del plugin (icono de engranaje), asegúrate de establecer:
+📦 Instalación y Despliegue
+Asegúrese de que todos los archivos (incluidos public.php y la carpeta data/) estén en la raíz del directorio del complemento.
 
-* **URL de la API:** La dirección IP o dominio donde corre tu instancia de OpenWA (Ej: `http://148.124.204.86:2785/api`).
-* **API Key:** La llave de seguridad configurada en tu servidor WAHA.
-* **Session ID:** El ID de sesión activo en tu servidor WAHA (ej: `400000cd-ccc3-4002-0050-b00c28a000a4`).
+Comprima el directorio completo en un archivo .zip.
 
----
+Ingresa al panel administrativo de UISP > Sistema > Complementos.
 
-## 🔍 Solución de Problemas (Troubleshooting)
+Haz clic en Subir Plugin y selecciona tu archivo .zip.
 
-Si el envío falla, verifica los logs en el Webhook de UISP. Aquí están los errores comunes resueltos:
+Active el complemento en la interfaz.
 
-### Error 404 (Endpoint no encontrado)
+⚙️ Configuración (Panel UISP)
+Al instalar, configure los siguientes parámetros obligatorios en la sección de ajustes del complemento:
 
-La API de WAHA Core requiere rutas precisas. Actualmente, el plugin utiliza:
+URL de la API: La ruta base de tu contenedor OpenWA (Ej: http://144.xxx.xxx.xx:2785/api ).
 
-* **Para Facturas (PDF):** `/sessions/{sessionId}/send-document`
-* **Para Textos:** `/sessions/{sessionId}/send-text`
+Clave API: Clave de autenticación configurada en las variables de entorno de tu Docker.
 
-> **Nota:** Si recibes un 404, asegúrate de que tu instancia de OpenWA esté corriendo la versión de API Core y que los endpoints coincidan con la documentación de tu versión específica.
+ID de sesión: El identificador exacto de la sesión activa de WhatsApp (Ej: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx).
 
-### Error 400 (Bad Request)
+App Key de UISP: Generada automáticamente por el sistema para autorizar las solicitudes internas (descarga de PDFs y datos de clientes).
 
-Este error ocurre cuando la estructura del JSON no es la esperada. El plugin actual envía los documentos bajo la siguiente estructura:
+🔍 Solución de Problemas (Registros)
+El complemento está diseñado para registrar sus acciones directamente en el visor de Webhooks de UISP.
 
-```json
-{
-    "chatId": "57xxxxxxxxx@c.us",
-    "caption": "Tu mensaje",
-    "document": {
-        "url": "data:application/pdf;base64,...",
-        "filename": "Factura_123.pdf"
-    }
-}
+Código 201/200: Envío exitoso.
 
-```
+Código 400: La carga útil enviada a la API de WhatsApp está mal formateada. Revisar variables de teléfono.
 
----
+Código 404: La ruta del endpoint en OpenWA no coincide con la versión instalada.
 
-## 📝 Autor
+Registro de límite de tasa: Si un mensaje no se envía por control de flujo, el registro indicará: "Límite de tasa: ya se notificó {evento} al cliente {ID}".
 
-Desarrollado por **Yulian Ernesto Castellanos Daza**.
+📝 Autor
+Desarrollado por Yulian Ernesto Castellanos Daza .
 
-* **Especialidad:** Análisis de Sistemas y Tecnología / Ingeniería en Telecomunicaciones.
-* **Proyecto:** Automatización de infraestructura Airlink Telecomunicaciones.
-
----
-
-## 📄 Licencia
-
+Especialidad: Análisis de Sistemas y Tecnología / Ingeniería en Telecomunicaciones.
+📄 Licencia
 Este proyecto esta bajo la licencia MIT.
