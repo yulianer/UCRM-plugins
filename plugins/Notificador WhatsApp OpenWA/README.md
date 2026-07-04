@@ -1,4 +1,5 @@
 Notificador WhatsApp Core para UISP (CRM)
+
 Este complemento integral conecta UISP (CRM) con la API de OpenWA Core, automatizando la comunicación con los clientes mediante notificaciones instantáneas de WhatsApp. El sistema procesa de forma inteligente los webhooks de UISP, maneja archivos PDF en Base64 y cuenta con un sistema avanzado de control de flujo (Rate-Limit) para evitar el spam.
 
 🚀 Características Principales
